@@ -1,0 +1,184 @@
+body {
+  background: #f7f7f9;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  max-width: 600px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 32px 24px;
+}
+h1 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 24px;
+}
+#pattern-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+#pattern-form label {
+  margin-top: 6px;
+}
+.pattern-error {
+  color: #e53935;
+  font-size: 0.96em;
+  margin-top: 8px;
+  margin-left: 0;
+  min-height: 1.2em;
+  text-align: left;
+  font-family: inherit;
+  display: none;
+  white-space: nowrap;
+}
+
+/*
+  To style just the Reset button, use its unique ID selector: #reset-btn
+  You can change background, color, border, etc. Example below makes it red.
+*/
+#reset-btn {
+  background: #e53935;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#reset-btn:hover {
+  background: #b71c1c;
+}
+#pattern-input {
+  flex: 1;
+  padding: 8px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+button {
+  background: #5e72e4;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+button:hover {
+  background: #324cdd;
+}
+#stitch-list {
+  margin: 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 40px;
+}
+.stitch-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.row-num {
+  display: inline-block;
+  min-width: 1.5em;
+  font-weight: bold;
+  color: #324cdd;
+  margin-right: 8px;
+  text-align: right;
+}
+.stitch-box {
+  width: 36px;
+  height: 36px;
+  background: #e9ecef;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, border 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+/* .stitch-box.half and .stitch-box.checked apply to both inc and dec stitches */
+.stitch-box.half::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: #bdbdbd;
+  z-index: 0;
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+.stitch-box.half {
+  color: #444;
+}
+.stitch-box.checked {
+  background: #5e72e4;
+  color: #fff;
+  border-color: #324cdd;
+  z-index: 1;
+}
+.stitch-box.active {
+  border: 2.5px solid #111;
+  box-shadow: 0 0 0 2px #1112;
+}
+.stitch-box.half, .stitch-box.checked {
+  font-weight: bold;
+}
+.stitch-box .stitch-label {
+  position: relative;
+  z-index: 1;
+}
+.controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+/*
+  To change the color of the instructions text, update the 'color' property below.
+  Example: color: #888; will make it grey. You can use any CSS color name or hex code.
+*/
+.hint {
+  color: #888; /* grey text */
+  font-size: 1.05em;
+  margin-top: 1.5em;
+  text-align: center;
+}
+.success-check {
+  margin-left: 16px;
+  font-size: 2em;
+  vertical-align: middle;
+  user-select: none;
+  position: relative;
+}
+.confetti-container {
+  position: absolute;
+  left: 0; top: 0; width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+.confetti-piece {
+  box-shadow: 0 1px 4px #0002;
+  z-index: 2;
+  will-change: transform, opacity;
+  opacity: 1 !important;
+}
+.success-check > span:last-child {
+  position: relative;
+  z-index: 2;
+}
+

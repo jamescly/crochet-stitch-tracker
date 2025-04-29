@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crochet Stitch Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Crochet Stitch Tracker</h1>
+    <form id="pattern-form">
+      <label for="pattern-input">Enter pattern:</label>
+      <input type="text" id="pattern-input" placeholder="e.g. [6 dc, inc] x 8" autocomplete="off" />
+      <button type="submit">Start Round</button>
+    </form>
+    <div id="pattern-error" class="pattern-error"></div>
+    <div id="stitch-list"></div>
+    <div class="controls">
+      <button id="reset-btn" type="button">Reset</button>
+      <button id="undo-btn" type="button">Undo</button>
+    </div>
+    <p class="hint">
+  To progress: press <strong>Space</strong>, <strong>Enter</strong>, or <strong>&rarr;</strong> (right arrow).<br>
+  To undo: press <strong>Backspace</strong> or <strong>&larr;</strong> (left arrow).
+</p>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

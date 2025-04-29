@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice-Enabled Crochet Stitch Tracker</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Helvetica+Black&display=swap');
+
+    /* Voice Demo Styles */
+    .round-tracker {
+      position: absolute;
+      top: 32px;
+      right: 24px;
+      text-align: right;
+    }
+    .round-tracker input {
+      width: 100px;
+      padding: 8px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      text-align: right;
+    }
+    .round-display {
+      font-size: 0.9em;
+      color: #666;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+    .round-tracker .delete-round-btn {
+      background: #bab6b6 !important;
+      color: #fff !important;
+      border: none !important;
+      border-radius: 4px !important;
+      padding: 3px 6px !important;
+      font-size: 0.65em !important;
+      cursor: pointer !important;
+      transition: background 0.2s !important;
+      margin-top: 6px !important;
+      height: auto !important;
+      line-height: 1 !important;
+    }
+    .round-tracker .delete-round-btn:hover {
+      background: rgb(236, 100, 100) !important;
+    }
+
+
+    .voice-section button {
+      font-size: 1rem;
+      padding: 10px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+      background: #d32f2f;
+      color: white;
+    }
+    .voice-section button:hover {
+      background: #c62828;
+    }
+    .voice-section button.listening {
+      background: #2e7d32;
+    }
+    .voice-section button.listening:hover {
+      background: #2e7d32;
+    }
+
+    #pattern-form {
+      margin-top: 24px;
+    }
+    .voice-section button {
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+      background: #d32f2f;
+      color: #fff;
+      box-shadow: none;
+    }
+    .voice-section button:hover {
+      background: #c62828;
+    }
+    .voice-section button.listening {
+      animation: pulse-red 0.75s infinite alternate;
+    }
+    @keyframes pulse-red {
+      0% { background: #d32f2f; }
+      100% { background: #ed6060; }
+    }
+    .voice-section .voice-listening-status {
+      /*Listening or not listening*/
+      margin: 0.8em 0 0 0;
+      font-size: 0.9em;
+      color: #444;
+      min-height: 1.5em;
+    }
+    .voice-section .voice-recognition {
+    /*Say "next", "ok", or "back"*/
+      font-size: 1.2em;
+      font-weight: 500;
+      margin: 0.4em 0 0.5em 0;
+      color: #888;
+      transition: transform 0.18s cubic-bezier(.4,2,0.6,1), color 0.2s;
+    }
+    .voice-section .voice-recognition.bounce {
+      transform: translateY(-5px);
+    }
+    .voice-section .voice-instructions {
+      /*Voice commands etc*/
+      color: #888;
+      text-align: left;
+      font-size: 0.98em;
+      margin-top: 1em;
+      margin-bottom: 3em;
+    }
+
+    /* Main App Styles */
+    body {
+      background: #f7f7f9;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 32px 24px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 24px;
+      font-family: 'Helvetica Black', Arial, sans-serif;
+      font-weight: 900;
+    }
+    button:not(.voice-section button) {
+      background: #5e72e4;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:not(.voice-section button):hover {
+      background: #324cdd;
+    }
+    #pattern-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    #pattern-form label {
+      margin-top: 6px;
+    }
+    #pattern-input {
+      flex: 1;
+      padding: 8px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .pattern-error {
+      color: #e53935;
+      font-size: 0.96em;
+      margin-top: 8px;
+      margin-left: 0;
+      min-height: 1.2em;
+      text-align: left;
+      font-family: inherit;
+      display: none;
+      white-space: nowrap;
+    }
+    #stitch-list {
+      margin: 24px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 40px;
+    }
+    .stitch-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+    .row-num {
+      display: inline-block;
+      min-width: 1.5em;
+      font-weight: bold;
+      color: #324cdd;
+      margin-right: 8px;
+      text-align: right;
+    }
+    .stitch-box {
+      width: 36px;
+      height: 36px;
+      background: #e9ecef;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.1rem;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: background 0.15s, border 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .stitch-box.half::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      background: #bdbdbd;
+      z-index: 0;
+      border-top-left-radius: 6px;
+      border-bottom-left-radius: 6px;
+    }
+    .stitch-box.half {
+      color: #444;
+    }
+    .stitch-box.checked {
+      background: #5e72e4;
+      color: #fff;
+      border-color: #324cdd;
+      z-index: 1;
+    }
+    .stitch-box.active {
+      border: 2.5px solid #111;
+      box-shadow: 0 0 0 2px #1112;
+    }
+    .stitch-box .stitch-label {
+      position: relative;
+      z-index: 2;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    #reset-btn {
+      background: #e53935;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #reset-btn:hover {
+      background: #b71c1c;
+    }
+    .hint {
+      color: #888;
+      font-size: 1em;
+      margin-top: 1.5em;
+      text-align: center;
+    }
+    .success-check {
+      margin-left: 16px;
+      font-size: 2em;
+      vertical-align: middle;
+      user-select: none;
+      position: relative;
+    }
+    .confetti-container {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .confetti-piece {
+      box-shadow: 0 1px 4px #0002;
+      z-index: 2;
+      will-change: transform, opacity;
+      opacity: 1 !important;
+    }
+    .success-check > span:last-child {
+      position: relative;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="round-tracker">
+      <input type="number" id="roundInput" placeholder="Enter last round" min="1" />
+      <div id="currentRound" class="round-display"></div>
+      <div id="currentRoundNext" class="round-display"></div>
+      <button id="clearRound" class="delete-round-btn">Delete last round</button>
+    </div>
+    <h1>Crochet Stitch Tracker</h1>
+    
+    <!-- Voice Demo Section -->
+    <div class="voice-section">
+      <div class="voice-listening-status" id="status">Not listening</div>
+      <button id="listenBtn">🎤 Start Listening</button>
+      <div class="voice-recognition" id="result">Say "next", "ok", or "back"</div>
+    </div>
+
+    <!-- Main App Section -->
+    <form id="pattern-form">
+      <label for="pattern-input">Enter pattern:</label>
+      <input type="text" id="pattern-input" placeholder="e.g. [6 dc, inc] x 8" autocomplete="off" />
+      <button type="submit">Start Round</button>
+    </form>
+    <div id="pattern-error" class="pattern-error"></div>
+    <div id="stitch-list"></div>
+    <div class="controls">
+      <button id="reset-btn" type="button">Reset</button>
+      <button id="undo-btn" type="button">Undo</button>
+    </div>
+    <p class="hint">
+      To progress: press <strong>Space</strong>, <strong>Enter</strong>, use a <strong>voice command</strong>, or <strong>&rarr;</strong> (right arrow).<br>
+      To undo: press <strong>Backspace</strong>, use a <strong>voice command</strong>, or <strong>&larr;</strong> (left arrow).<br><br>
+      <strong>Voice commands</strong>: "next" or "ok" to advance, "back" to undo.
+    </p>
+  </div>
+
+  <script>
+    // --- Round Tracking ---
+    const roundInput = document.getElementById('roundInput');
+    const currentRound = document.getElementById('currentRound');
+    const currentRoundNext = document.getElementById('currentRoundNext');
+    const clearRoundBtn = document.getElementById('clearRound');
+
+    // Load saved round on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedRound = localStorage.getItem('lastRound');
+      if (savedRound) {
+        currentRound.textContent = `Last round completed: ${savedRound}`;
+        currentRoundNext.textContent = `Now on round: ${parseInt(savedRound) + 1}`;
+        roundInput.value = savedRound;
+      }
+    });
+
+    // Save round when input changes
+    roundInput.addEventListener('change', () => {
+      const round = roundInput.value;
+      if (round) {
+        localStorage.setItem('lastRound', round);
+        currentRound.textContent = `Last round completed: ${round}`;
+        currentRoundNext.textContent = `Now on round: ${parseInt(round) + 1}`;
+      }
+    });
+
+    // Clear round
+    clearRoundBtn.addEventListener('click', () => {
+      roundInput.value = '';
+      currentRound.textContent = '';
+      currentRoundNext.textContent = '';
+      localStorage.removeItem('lastRound');
+    });
+
+    // --- Main App Functionality ---
+    const patternForm = document.getElementById('pattern-form');
+    const patternInput = document.getElementById('pattern-input');
+    const stitchList = document.getElementById('stitch-list');
+    const resetBtn = document.getElementById('reset-btn');
+    const undoBtn = document.getElementById('undo-btn');
+
+    let stitches = [];
+    let stitchGroups = [];
+    let stitchProgress = [];
+
+    function parsePatternGroups(pattern) {
+      pattern = pattern.trim();
+      let groups = [];
+      
+      // Match [group] x N
+      let repeatMatch = pattern.match(/^\[(.+?)\]\s*x\s*(\d+)$/i);
+      if (repeatMatch) {
+        let group = repeatMatch[1];
+        let repeat = parseInt(repeatMatch[2]);
+        let groupSeq = parsePatternGroups(group)[0].group;
+        groups.push({ group: groupSeq, repeat });
+        return groups;
+      }
+
+      // Match 'instructions xN' (not wrapped in [])
+      let simpleRepeat = pattern.match(/^(.+?)\s*x\s*(\d+)$/i);
+      if (simpleRepeat && !pattern.startsWith('[')) {
+        let group = simpleRepeat[1].trim();
+        let repeat = parseInt(simpleRepeat[2]);
+        let groupSeq = parsePatternGroups(group)[0].group;
+        groups.push({ group: groupSeq, repeat });
+        return groups;
+      }
+
+      // Single group, possibly with multiple instructions
+      let items = pattern.split(',').map(s => s.trim());
+      let groupSeq = [];
+      for (let item of items) {
+        let m = item.match(/^([0-9]+)?\s*(dc|inc|dec)$/i);
+        if (m) {
+          let count = parseInt(m[1] || '1');
+          let type = m[2].toLowerCase();
+          for (let i = 0; i < count; i++) {
+            groupSeq.push(type);
+          }
+        }
+      }
+      if (groupSeq.length > 0) {
+        groups.push({ group: groupSeq, repeat: 1 });
+      }
+      return groups;
+    }
+
+    function flattenGroups(groups) {
+      let flat = [];
+      let map = [];
+      groups.forEach((g, groupIdx) => {
+        for (let r = 0; r < g.repeat; r++) {
+          g.group.forEach((stitch, i) => {
+            flat.push(stitch);
+            map.push({ groupIdx, repeatNum: r, stitchIdx: i });
+          });
+        }
+      });
+      return { flat, map };
+    }
+
+    function renderStitches() {
+      stitchList.innerHTML = '';
+      let counter = 0;
+      // Find the first incomplete stitch (active)
+      let activeIdx = -1;
+      for (let i = 0; i < stitches.length; i++) {
+        if (((stitches[i] === 'inc' || stitches[i] === 'dec') && stitchProgress[i] !== 2) || (stitches[i] !== 'inc' && stitches[i] !== 'dec' && stitchProgress[i] !== 1)) {
+          activeIdx = i;
+          break;
+        }
+      }
+
+      // Default rendering
+      let allDone = stitches.length > 0 && stitches.every((st, i) =>
+        (st === 'inc' || st === 'dec') ? stitchProgress[i] === 2 : stitchProgress[i] === 1
+      );
+      let lastRow;
+      let lastRowIdx = -1;
+      stitchGroups.forEach((g, groupIdx) => {
+        for (let r = 0; r < g.repeat; r++) {
+          const row = document.createElement('div');
+          row.className = 'stitch-row';
+          if (g.repeat > 1) {
+            const num = document.createElement('span');
+            num.className = 'row-num';
+            num.textContent = (r + 1);
+            row.appendChild(num);
+          }
+          g.group.forEach((stitch, i) => {
+            const div = document.createElement('div');
+            let prog = stitchProgress[counter] || 0;
+            div.className = 'stitch-box';
+            // Always wrap label in a span for z-index layering
+            const label = document.createElement('span');
+            label.className = 'stitch-label';
+            label.textContent = stitch;
+            div.appendChild(label);
+            if (stitch === 'inc' || stitch === 'dec') {
+              if (prog === 1) div.classList.add('half');
+              if (prog === 2) div.classList.add('checked');
+            } else {
+              if (prog === 1 || prog === 2) div.classList.add('checked');
+            }
+            if (counter === activeIdx) div.classList.add('active');
+            div.tabIndex = 0;
+            div.addEventListener('click', () => {
+              // No-op: click no longer sets a cursor, only visual highlight
+            });
+            row.appendChild(div);
+            counter++;
+          });
+          lastRow = row;
+          lastRowIdx++;
+          stitchList.appendChild(row);
+        }
+      });
+      // Add success checkmark if all done
+      if (allDone && lastRow) {
+        const check = document.createElement('span');
+        check.className = 'success-check';
+        check.style.marginLeft = '16px';
+        check.style.fontSize = '2em';
+        check.style.verticalAlign = 'middle';
+        check.style.position = 'relative';
+        // Confetti container (behind emoji)
+        const confettiContainer = document.createElement('span');
+        confettiContainer.className = 'confetti-container';
+        confettiContainer.style.position = 'absolute';
+        confettiContainer.style.left = '0';
+        confettiContainer.style.top = '0';
+        confettiContainer.style.width = '100%';
+        confettiContainer.style.height = '100%';
+        confettiContainer.style.pointerEvents = 'none';
+        confettiContainer.style.zIndex = '1';
+        check.appendChild(confettiContainer);
+        // Emoji (above confetti)
+        const emoji = document.createElement('span');
+        emoji.textContent = '✅';
+        emoji.style.position = 'relative';
+        emoji.style.zIndex = '2';
+        check.appendChild(emoji);
+
+        lastRow.appendChild(check);
+        // Confetti burst
+        const confettiColors = ['#f44336', '#ffeb3b', '#4caf50', '#2196f3', '#ff9800', '#e040fb', '#00bcd4', '#ffd600'];
+        const confettiCount = 8;
+        for (let i = 0; i < confettiCount; i++) {
+          const conf = document.createElement('span');
+          conf.className = 'confetti-piece';
+          conf.style.background = confettiColors[i % confettiColors.length];
+          conf.style.position = 'absolute';
+          conf.style.left = '50%';
+          conf.style.top = '50%';
+          conf.style.width = '7px';
+          conf.style.height = '10px';
+          conf.style.borderRadius = '2px';
+          conf.style.transform = 'translate(-50%, -50%)';
+          conf.style.opacity = (0.6 + Math.random()*0.4).toFixed(2);
+          conf.style.pointerEvents = 'none';
+          conf.style.transition = 'transform 0.27s cubic-bezier(.15,1.6,.4,.95), opacity 0.27s cubic-bezier(.15,1.6,.4,.95)';
+          confettiContainer.appendChild(conf);
+          // Animate outward instantly after DOM paint
+          requestAnimationFrame(() => {
+            const angle = (2 * Math.PI * i) / confettiCount;
+            // Base and random velocity for confetti explosion (in px)
+            const baseVelocity = 28;
+            const randomVelocity = 8;
+            const radius = baseVelocity + Math.random()*randomVelocity;
+            conf.style.transform = `translate(-50%, -50%) translate(${Math.cos(angle)*radius}px, ${Math.sin(angle)*radius}px) rotate(${Math.random()*360}deg)`;
+            // Start fade-out partway through movement
+            setTimeout(() => {
+              conf.style.opacity = '0';
+            }, 100);
+          });
+          // Remove after animation
+          setTimeout(() => {
+            if (conf.parentNode) conf.parentNode.removeChild(conf);
+          }, 290);
+        }
+      }
+    }
+
+    function undoStitch() {
+      if (!stitches.length) return;
+      let activeIdx = getActiveStitchIdx();
+      let idx = (activeIdx === -1) ? stitches.length - 1 : activeIdx;
+      // If the active stitch has any progress, undo that progress
+      if (idx >= 0 && stitchProgress[idx] > 0) {
+        if ((stitches[idx] === 'inc' || stitches[idx] === 'dec') && stitchProgress[idx] === 2) {
+          stitchProgress[idx] = 1;
+        } else {
+          stitchProgress[idx] = 0;
+        }
+      } else if (idx > 0) {
+        // Otherwise, go to the previous stitch and undo its progress
+        idx = idx - 1;
+        if ((stitches[idx] === 'inc' || stitches[idx] === 'dec') && stitchProgress[idx] === 2) {
+          stitchProgress[idx] = 1;
+        } else {
+          stitchProgress[idx] = 0;
+        }
+      }
+
+      renderStitches();
+    }
+
+    function getActiveStitchIdx() {
+      return stitches.findIndex((st, i) => ((st === 'inc' || st === 'dec') ? stitchProgress[i] !== 2 : stitchProgress[i] !== 1));
+    }
+
+    function advanceStitch() {
+      if (!stitches.length) return;
+      let idx = getActiveStitchIdx();
+      if (idx === -1 || idx >= stitches.length) return;
+      if (stitches[idx] === 'inc' || stitches[idx] === 'dec') {
+        if ((stitchProgress[idx] || 0) === 0) {
+          stitchProgress[idx] = 1; // half
+        } else if (stitchProgress[idx] === 1) {
+          stitchProgress[idx] = 2;
+        }
+      } else {
+        if ((stitchProgress[idx] || 0) === 0) {
+          stitchProgress[idx] = 1;
+        }
+      }
+
+      renderStitches();
+    }
+
+    function updateProgress() {
+      renderStitches();
+    }
+
+    // Space bar to check off next stitch, Backspace to undo
+    window.addEventListener('keydown', (e) => {
+      // Debug: log all keydown events
+      console.log('keydown:', e.code, 'target:', document.activeElement.tagName);
+      if (document.activeElement.tagName === 'INPUT') return;
+      if (!stitches.length) return;
+      // Advance triggers: Space, Enter/Return, Right Arrow
+      if (
+        e.code === 'Space' ||
+        e.code === 'Enter' ||
+        e.key === 'Enter' ||
+        e.code === 'NumpadEnter' ||
+        e.key === 'Return' ||
+        e.code === 'ArrowRight' ||
+        e.key === 'ArrowRight'
+      ) {
+        advanceStitch();
+        e.preventDefault();
+      // Undo triggers: Backspace, Left Arrow
+      } else if (
+        e.code === 'Backspace' || e.key === 'Backspace' ||
+        e.code === 'ArrowLeft' || e.key === 'ArrowLeft'
+      ) {
+        console.log('Undo trigger:', e.code, e.key);
+        undoStitch();
+        e.preventDefault();
+      }
+    });
+
+    patternForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const errorDiv = document.getElementById('pattern-error');
+      stitchGroups = parsePatternGroups(patternInput.value);
+      const { flat, map } = flattenGroups(stitchGroups);
+      stitches = flat;
+      if (!stitches.length) {
+        errorDiv.textContent = "Didn't recognise that pattern, try again";
+        errorDiv.style.display = 'block';
+        return;
+      } else {
+        errorDiv.textContent = '';
+        errorDiv.style.display = 'none';
+      }
+      stitchProgress = stitches.map(st => 0); // reset progress
+      renderStitches();
+      patternInput.blur();
+    });
+
+    // Hide error when user starts typing a new pattern
+    patternInput.addEventListener('input', () => {
+      const errorDiv = document.getElementById('pattern-error');
+      errorDiv.textContent = '';
+      errorDiv.style.display = 'none';
+    });
+
+    resetBtn.addEventListener('click', () => {
+      stitchProgress = stitches.map(st => 0);
+      renderStitches();
+    });
+
+    undoBtn.addEventListener('click', undoStitch);
+
+    // Initialize
+    renderStitches();
+
+    // --- Voice Command Integration ---
+    window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    let listening = false;
+    const listenBtn = document.getElementById('listenBtn');
+    const statusDiv = document.getElementById('status');
+    const resultDiv = document.getElementById('result');
+
+    if (window.SpeechRecognition) {
+      recognition = new window.SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.continuous = true;
+      recognition.interimResults = false;
+    }
+
+    listenBtn.addEventListener('click', () => {
+      if (!recognition) return;
+      if (!listening) {
+        recognition.start();
+        statusDiv.textContent = 'Listening...';
+        listenBtn.classList.add('listening');
+        listenBtn.textContent = '🎤 Stop Listening';
+        resultDiv.textContent = 'Say "next", "ok", or "back"';
+        listening = true;
+      } else {
+        recognition.stop();
+        statusDiv.textContent = 'Not listening';
+        listenBtn.classList.remove('listening');
+        listenBtn.textContent = '🎤 Start Listening';
+        resultDiv.textContent = 'Say "next", "ok", or "back"';
+        listening = false;
+      }
+    });
+
+    if (recognition) {
+      recognition.onresult = (event) => {
+        const transcript = event.results[event.results.length-1][0].transcript.trim().toLowerCase();
+        let msg = '';
+        let color = '#b71c1c';
+        
+        if (transcript.includes('next') || transcript.includes('ok') || transcript.includes('okay')) {
+          msg = `Heard: "${transcript}" (advance)`;
+          color = '#388e3c';
+          advanceStitch();
+        } else if (transcript.includes('back')) {
+          msg = 'Heard: "back" (undo)';
+          color = '#1976d2';
+          undoStitch();
+        } else {
+          msg = `Heard: "${transcript}" (ignored)`;
+          color = '#b71c1c';
+        }
+        
+        resultDiv.classList.remove('bounce');
+        void resultDiv.offsetWidth;
+        resultDiv.textContent = msg;
+        resultDiv.style.color = color;
+        resultDiv.classList.add('bounce');
+        setTimeout(()=>resultDiv.classList.remove('bounce'), 200);
+      };
+      
+      recognition.onerror = (event) => {
+        statusDiv.textContent = 'Error or permission denied';
+        listenBtn.classList.remove('listening');
+        listenBtn.textContent = '🎤 Start Listening';
+        resultDiv.textContent = 'Say "next", "ok", or "back"';
+        listening = false;
+      };
+      
+      recognition.onend = () => {
+        if (listening) {
+          statusDiv.textContent = 'Not listening';
+          listenBtn.classList.remove('listening');
+          listenBtn.textContent = '🎤 Start Listening';
+          resultDiv.textContent = 'Say "next", "ok", or "back"';
+          listening = false;
+        }
+      };
+    }
+    // Initialize round tracker
+    const roundTracker = {
+      currentRound: 1,
+      updateDisplays() {
+        currentRound.textContent = `Round ${this.currentRound}`;
+        currentRoundNext.textContent = `→ Round ${this.currentRound + 1}`;
+      },
+      handleInput(e) {
+        const value = parseInt(e.target.value);
+        if (!isNaN(value) && value >= 1) {
+          this.currentRound = value;
+          this.updateDisplays();
+        }
+      },
+      clear() {
+        this.currentRound = 1;
+        roundInput.value = '';
+        this.updateDisplays();
+      }
+    };
+
+    // Initialize round displays
+    roundTracker.updateDisplays();
+
+    // Handle round input
+    roundInput.addEventListener('input', (e) => roundTracker.handleInput(e));
+    clearRoundBtn.addEventListener('click', () => roundTracker.clear());
+
+  </script>
+</body>
+</html>
