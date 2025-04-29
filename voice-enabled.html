@@ -754,7 +754,7 @@
       currentRound: 1,
       updateDisplays() {
         currentRound.textContent = `Round ${this.currentRound}`;
-        currentRoundNext.textContent = `→ Round ${this.currentRound + 1}`;
+        currentRoundNext.textContent = '';
       },
       handleInput(e) {
         const value = parseInt(e.target.value);
