@@ -7,50 +7,6 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Helvetica+Black&display=swap');
 
-    /* Voice Demo Styles */
-    .round-tracker {
-      position: absolute;
-      top: 32px;
-      right: 24px;
-      text-align: right;
-    }
-    .round-tracker input {
-      width: 100px;
-      padding: 8px;
-      font-size: 1rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      text-align: right;
-    }
-    .round-display {
-      font-size: 0.9em;
-      color: #666;
-      font-weight: bold;
-      margin-top: 8px;
-      display: block;
-    }
-    .round-tracker .delete-round-btn {
-      background: #bab6b6 !important;
-      color: #fff !important;
-      border: none !important;
-      border-radius: 4px !important;
-      padding: 3px 6px !important;
-      font-size: 0.65em !important;
-      cursor: pointer !important;
-      transition: background 0.2s !important;
-      margin-top: 6px !important;
-      height: auto !important;
-      line-height: 1 !important;
-    }
-    .round-tracker .delete-round-btn:hover {
-      background: rgb(236, 100, 100) !important;
-    }
-
-
-    .voice-section button {
-      font-size: 1rem;
-      padding: 10px 16px;
-      border-radius: 6px;
       border: none;
       cursor: pointer;
       transition: background 0.2s;
@@ -78,6 +34,9 @@
       background: #d32f2f;
       color: #fff;
       box-shadow: none;
+      padding: 10px 16px;
+      font-size: 1rem;
+      min-width: 120px;
     }
     .voice-section button:hover {
       background: #c62828;
@@ -130,6 +89,70 @@
       border-radius: 14px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       padding: 32px 24px;
+    }
+    .round-tracker {
+      position: absolute;
+      top: 8px;
+      right: 24px;
+      text-align: right;
+      z-index: 100;
+    }
+    .round-tracker input {
+      width: 100px;
+      padding: 8px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      text-align: right;
+    }
+    .round-display {
+      font-size: 0.9em;
+      color: #666;
+      font-weight: bold;
+      margin-top: 8px;
+      display: block;
+    }
+    .round-tracker .delete-round-btn {
+      background: #bab6b6;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 3px 6px;
+      font-size: 0.65em;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 6px;
+      height: auto;
+      line-height: 1;
+    }
+    .round-tracker .delete-round-btn:hover {
+      background: rgb(236, 100, 100) !important;
+    }
+
+    /* Responsive Round Tracker */
+    @media screen and (max-width: 600px) {
+      .round-tracker {
+        position: static;
+        margin-top: 40px;
+        text-align: center;
+        width: 100%;
+      }
+      .round-tracker input {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto 10px;
+        display: block;
+      }
+      .round-display {
+        margin: 10px 0;
+        display: block;
+      }
+      .delete-round-btn {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+        display: block;
+      }
     }
     h1 {
       text-align: center;
@@ -296,13 +319,13 @@
 </head>
 <body>
   <div class="container">
+    <h1>Crochet Stitch Tracker</h1>
     <div class="round-tracker">
       <input type="number" id="roundInput" placeholder="Enter last round" min="1" />
       <div id="currentRound" class="round-display"></div>
       <div id="currentRoundNext" class="round-display"></div>
       <button id="clearRound" class="delete-round-btn">Delete last round</button>
     </div>
-    <h1>Crochet Stitch Tracker</h1>
     
     <!-- Voice Demo Section -->
     <div class="voice-section">
@@ -342,7 +365,7 @@
       const savedRound = localStorage.getItem('lastRound');
       if (savedRound) {
         currentRound.textContent = `Last round completed: ${savedRound}`;
-        currentRoundNext.textContent = `Now on round: ${parseInt(savedRound) + 1}`;
+        currentRoundNext.innerHTML = `<span style="color: black; font-size: 1.2em;">Now on round: ${parseInt(savedRound) + 1}</span>`;
         roundInput.value = savedRound;
       }
     });
@@ -353,7 +376,7 @@
       if (round) {
         localStorage.setItem('lastRound', round);
         currentRound.textContent = `Last round completed: ${round}`;
-        currentRoundNext.textContent = `Now on round: ${parseInt(round) + 1}`;
+        currentRoundNext.innerHTML = `<span style="color: black; font-size: 1.5em;">Now on round: ${parseInt(round) + 1}</span>`;
       }
     });
 
