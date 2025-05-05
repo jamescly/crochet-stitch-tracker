@@ -124,6 +124,8 @@
       margin-top: 6px;
       height: auto;
       line-height: 1;
+      width: auto;
+      max-width: none;
     }
     .round-tracker .delete-round-btn:hover {
       background: rgb(236, 100, 100) !important;
@@ -270,6 +272,30 @@
       display: flex;
       gap: 10px;
       justify-content: center;
+      margin-top: 20px;
+    }
+    @media screen and (max-width: 600px) {
+      .controls {
+        flex-direction: column;
+        align-items: center;
+      }
+      .controls button {
+        width: 100%;
+        max-width: 200px;
+        margin: 5px 0;
+      }
+    }
+    .controls .green-btn {
+      background: #4caf50 !important;
+      color: #fff !important;
+      border: none !important;
+      border-radius: 5px !important;
+      padding: 8px 16px !important;
+      cursor: pointer !important;
+      transition: background 0.2s !important;
+    }
+    .controls .green-btn:hover {
+      background: #45a049 !important;
     }
     #reset-btn {
       background: #e53935;
@@ -343,8 +369,9 @@
     <div id="pattern-error" class="pattern-error"></div>
     <div id="stitch-list"></div>
     <div class="controls">
-      <button id="reset-btn" type="button">Reset</button>
-      <button id="undo-btn" type="button">Undo</button>
+      <button id="reset-btn" type="button">Reset stitches</button>
+      <button id="undo-btn" type="button">Undo stitch</button>
+      <button id="next-btn" type="button" class="green-btn">Next stitch</button>
     </div>
     <p class="hint">
       To progress: press <strong>Space</strong>, <strong>Enter</strong>, use a <strong>voice command</strong>, or <strong>&rarr;</strong> (right arrow).<br>
@@ -359,6 +386,7 @@
     const currentRound = document.getElementById('currentRound');
     const currentRoundNext = document.getElementById('currentRoundNext');
     const clearRoundBtn = document.getElementById('clearRound');
+    const nextBtn = document.getElementById('next-btn');
 
     // Load saved round on page load
     document.addEventListener('DOMContentLoaded', () => {
@@ -388,6 +416,11 @@
       localStorage.removeItem('lastRound');
     });
 
+    // Handle Next button click
+    nextBtn.addEventListener('click', () => {
+      advanceStitch();
+    });
+
     // --- Main App Functionality ---
     const patternForm = document.getElementById('pattern-form');
     const patternInput = document.getElementById('pattern-input');
@@ -413,13 +446,13 @@
         return groups;
       }
 
-      // Match 'instructions xN' (not wrapped in [])
-      let simpleRepeat = pattern.match(/^(.+?)\s*x\s*(\d+)$/i);
-      if (simpleRepeat && !pattern.startsWith('[')) {
-        let group = simpleRepeat[1].trim();
-        let repeat = parseInt(simpleRepeat[2]);
-        let groupSeq = parsePatternGroups(group)[0].group;
-        groups.push({ group: groupSeq, repeat });
+      // Match round repeat (entire pattern xN)
+      let roundRepeat = pattern.match(/^(.+?)\s*x\s*(\d+)$/i);
+      if (roundRepeat && !pattern.startsWith('[')) {
+        let patternContent = roundRepeat[1].trim();
+        let repeat = parseInt(roundRepeat[2]);
+        let group = parsePatternGroups(patternContent)[0].group;
+        groups.push({ group, repeat });
         return groups;
       }
 
@@ -427,10 +460,24 @@
       let items = pattern.split(',').map(s => s.trim());
       let groupSeq = [];
       for (let item of items) {
-        let m = item.match(/^([0-9]+)?\s*(dc|inc|dec)$/i);
-        if (m) {
-          let count = parseInt(m[1] || '1');
-          let type = m[2].toLowerCase();
+        // Match chain stitches in various formats (chx, xch, ch x, x ch)
+        let chainMatch = item.match(/^(ch\s*(\d+)|x\s*(\d+)|\d+\s*(ch|x))$/i);
+        if (chainMatch) {
+          let count;
+          if (chainMatch[2]) {
+            count = parseInt(chainMatch[2]);
+          } else if (chainMatch[3]) {
+            count = parseInt(chainMatch[3]);
+          } else {
+            count = parseInt(chainMatch[0].match(/\d+/)[0]);
+          }
+          groupSeq.push(`ch${count}`);
+        }
+        // Match regular stitches (dc, tr, inc, dec)
+        let stitchMatch = item.match(/^([0-9]+)?\s*(dc|tr|inc|dec)$/i);
+        if (stitchMatch) {
+          let count = parseInt(stitchMatch[1] || '1');
+          let type = stitchMatch[2].toLowerCase();
           for (let i = 0; i < count; i++) {
             groupSeq.push(type);
           }
